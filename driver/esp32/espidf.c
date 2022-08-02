@@ -22,6 +22,7 @@ inline uint32_t gpio_intr_pending_high(void){return 0;}
 inline uint32_t gpio_intr_pending(void){return 0;}
 inline void gpio_intr_handler_register(gpio_intr_handler_fn_t fn, void *arg){}
 inline void gpio_init(void){}
+esp_err_t rtc_gpio_force_hold_all(void){return 0;}
 
 void task_delay_ms(int ms)
 {

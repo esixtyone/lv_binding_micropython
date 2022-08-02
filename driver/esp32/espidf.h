@@ -77,7 +77,10 @@ void * memset ( void * ptr, int value, size_t num );
 // - https://hackaday.io/project/162059-street-sense/log/160705-new-i2s-microphone/discussion-124677
 // - https://www.esp32.com/viewtopic.php?t=4997#p45366
 // Since reg access is based on macros, this cannot currently be directly implemented in Micropython
-
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+	//does not work with S3. I2S registers are different names for S3
+	static inline void SPH0645_WORKAROUND(int i2s_num){};
+#else
 #include "soc/i2s_reg.h" // for SPH0645_WORKAROUND
 
 static inline void SPH0645_WORKAROUND(int i2s_num)
@@ -85,7 +88,7 @@ static inline void SPH0645_WORKAROUND(int i2s_num)
     REG_SET_BIT( I2S_TIMING_REG(i2s_num), BIT(9));
     REG_SET_BIT( I2S_CONF_REG(i2s_num), I2S_RX_MSB_SHIFT);
 }
-
+#endif
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Helper function to measure CPU cycles
 //
@@ -177,9 +180,19 @@ void ex_spi_post_cb_isr(spi_transaction_t *trans);
 #if defined(ESP_IDF_VERSION_MAJOR) && ESP_IDF_VERSION_MAJOR >= 4
 // SPI HOST enum was changed to macros on v4
 enum {
+#   if CONFIG_IDF_TARGET_ESP32
     ENUM_SPI_HOST = SPI_HOST,
     ENUM_HSPI_HOST = HSPI_HOST,
     ENUM_VSPI_HOST = VSPI_HOST,
+#   elif CONFIG_IDF_TARGET_ESP32S2
+    ENUM_SPI_HOST = SPI_HOST,
+    ENUM_HSPI_HOST = FSPI_HOST,
+    ENUM_VSPI_HOST = HSPI_HOST,
+#   elif CONFIG_IDF_TARGET_ESP32S3
+    ENUM_SPI_HOST = 0,
+    ENUM_HSPI_HOST = SPI2_HOST,
+    ENUM_VSPI_HOST = SPI3_HOST,
+#	endif
 };
 #endif
 

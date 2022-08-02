@@ -58,6 +58,7 @@ static const char TAG[] = "[RTCH]";
 
 #define GPIO_TO_ADC_ELEMENT(x) [x] = CONCAT3(ADC1_GPIO, x, _CHANNEL)
 static const int gpio_to_adc[] = {
+#   if CONFIG_IDF_TARGET_ESP32
         GPIO_TO_ADC_ELEMENT(36),
         GPIO_TO_ADC_ELEMENT(37),
         GPIO_TO_ADC_ELEMENT(38),
@@ -66,8 +67,27 @@ static const int gpio_to_adc[] = {
         GPIO_TO_ADC_ELEMENT(33),
         GPIO_TO_ADC_ELEMENT(34),
         GPIO_TO_ADC_ELEMENT(35),
+#	else
+		// for esp32s2/s3/h2/c3
+        GPIO_TO_ADC_ELEMENT(1),
+        GPIO_TO_ADC_ELEMENT(2),
+        GPIO_TO_ADC_ELEMENT(3),
+        GPIO_TO_ADC_ELEMENT(4),
+        GPIO_TO_ADC_ELEMENT(5),
+        GPIO_TO_ADC_ELEMENT(6),
+        GPIO_TO_ADC_ELEMENT(7),
+        GPIO_TO_ADC_ELEMENT(8),
+#	endif
 };
 
+#if CONFIG_IDF_TARGET_ESP32S2
+//esp-idf has a bug in adc_types.h where 12 bit is not defined for S2. use 13 bit instead
+#define TOUCH_ADC_BIT_WIDTH ADC_WIDTH_BIT_13
+#define TOUCH_RAW_ADC_SHIFT 1 //correct for the extra resolution with a bit shift.
+#else
+#define TOUCH_ADC_BIT_WIDTH ADC_WIDTH_BIT_12
+#define TOUCH_RAW_ADC_SHIFT 0
+#endif
 //////////////////////////////////////////////////////////////////////////////
 // Module definition
 //////////////////////////////////////////////////////////////////////////////
@@ -393,7 +413,7 @@ STATIC int measure_axis(
     adc1_channel_t adc_channel = gpio_to_adc[measure];
 
     adc_gpio_init(ADC_UNIT_1, adc_channel);
-    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_width(TOUCH_ADC_BIT_WIDTH);
     adc1_config_channel_atten(adc_channel,ADC_ATTEN_DB_11);
 
     vTaskDelay(RTCH_INIT_ADC_WAIT_MS / portTICK_RATE_MS);
@@ -405,7 +425,7 @@ STATIC int measure_axis(
     for (int i=0; i<sample_count; i++)
     {
         //vTaskDelay(RTCH_SAMPLE_WAIT_MS / portTICK_RATE_MS);
-        samples[i] = adc1_get_raw(adc_channel);
+        samples[i] = adc1_get_raw(adc_channel) >> TOUCH_RAW_ADC_SHIFT;
     }
     qsort(samples, sample_count, sizeof(samples[0]), compare_int);
 
