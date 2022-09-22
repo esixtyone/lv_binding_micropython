@@ -24,6 +24,15 @@ inline void gpio_intr_handler_register(gpio_intr_handler_fn_t fn, void *arg){}
 inline void gpio_init(void){}
 esp_err_t rtc_gpio_force_hold_all(void){return 0;}
 
+#if CONFIG_IDF_TARGET_ESP32S3
+inline void gpio_output_set_high(uint32_t set_mask, uint32_t clear_mask, uint32_t enable_mask, uint32_t disable_mask){}
+inline uint32_t gpio_input_get_high(void){return 0;}
+inline void lldesc_build_chain(uint8_t *descptr, uint32_t desclen, uint8_t *mblkptr, uint32_t buflen, uint32_t blksz, uint8_t owner,lldesc_t **head,lldesc_t **tail){}
+inline lldesc_t *lldesc_num2link(lldesc_t *head, uint16_t nblks){return 0;}
+inline lldesc_t *lldesc_set_owner(lldesc_t *head, uint16_t nblks, uint8_t owner){return 0;}
+inline int xt_clock_freq(void){ return esp_clk_cpu_freq();}
+#endif
+
 void task_delay_ms(int ms)
 {
     vTaskDelay(ms / portTICK_RATE_MS);

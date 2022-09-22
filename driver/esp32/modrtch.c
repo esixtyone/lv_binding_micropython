@@ -412,7 +412,9 @@ STATIC int measure_axis(
 
     adc1_channel_t adc_channel = gpio_to_adc[measure];
 
+#if ! CONFIG_IDF_TARGET_ESP32S3
     adc_gpio_init(ADC_UNIT_1, adc_channel);
+#endif
     adc1_config_width(TOUCH_ADC_BIT_WIDTH);
     adc1_config_channel_atten(adc_channel,ADC_ATTEN_DB_11);
 
